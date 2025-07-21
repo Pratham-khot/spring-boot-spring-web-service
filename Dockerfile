@@ -1,11 +1,12 @@
-# Use a Java 17 base image
-FROM eclipse-temurin:17-jdk-alpine
-
-# Set working directory
+# Stage 1: Build the application using Maven
+FROM maven:3.9.6-eclipse-temurin-17-alpine AS build
 WORKDIR /app
+COPY pom.xml .
+COPY src ./src
+RUN mvn clean package -DskipTests
 
-# Copy the JAR file into the container
-COPY target/*.jar app.jar
-
-# Run the application
+# Stage 2: Run the application
+FROM eclipse-temurin:17-jdk-alpine
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
